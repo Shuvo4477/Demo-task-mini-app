@@ -1,13 +1,188 @@
-<!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Ton Sample TWA</title>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+<!doctype html>
+<html lang="bn">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <title>টাস্ক আর্ন মিনি অ্যাপ</title>
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        /* বেসিক সিএসএস: টেলিগ্রাম থিম কালার জাভাস্ক্রিপ্ট দ্বারা সেট করা হবে */
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            transition: background-color 0.3s;
+            color: var(--tg-theme-text-color, #ffffff);
+        }
+        .container {
+            padding: 16px;
+        }
+        .card {
+            background-color: var(--tg-theme-secondary-bg-color, #2c2c2e);
+            padding: 20px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .task-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            background-color: var(--tg-theme-bg-color, #2c2c2e);
+        }
+        .task-item.completed {
+            opacity: 0.6;
+        }
+        .task-item button {
+            padding: 8px 15px;
+            border-radius: 6px;
+            border: none;
+            cursor: pointer;
+            background-color: var(--tg-theme-button-color, #007aff);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            font-weight: bold;
+        }
+        .task-item button:disabled {
+            background-color: var(--tg-theme-hint-color, #aaa);
+            cursor: not-allowed;
+        }
+        .withdraw-btn {
+            padding: 10px 20px;
+            border-radius: 8px;
+            border: none;
+            background-color: var(--tg-theme-button-color, #007aff);
+            color: var(--tg-theme-button-text-color, #ffffff);
+            margin-top: 15px;
+            cursor: pointer;
+        }
+        .referral-code {
+            background-color: #1c1c1d;
+            padding: 10px;
+            border-radius: 6px;
+            overflow-x: auto;
+            color: #fff;
+            display: block;
+            margin: 10px 0;
+        }
+    </style>
+</head>
+<body>
+    <div id="app" class="container">
+        </div>
+
+    <script>
+        const tasksData = [
+            { id: 1, title: 'দৈনিক বিজ্ঞাপন দেখুন', reward: 50, completed: false },
+            { id: 2, title: 'আমাদের টেলিগ্রাম চ্যানেলে যোগ দিন', reward: 500, completed: false },
+            { id: 3, title: 'একটি বন্ধুকে রেফার করুন', reward: 1000, completed: false },
+        ];
+        let balance = 12450;
+        
+        function renderApp() {
+            const webApp = window.Telegram.WebApp;
+            const user = webApp.initDataUnsafe.user || { first_name: 'ব্যবহারকারী', id: 'XXXX' };
+            const themeParams = webApp.themeParams || {};
+
+            // CSS ভেরিয়েবল সেট করুন
+            document.documentElement.style.setProperty('--tg-theme-text-color', themeParams.text_color || '#ffffff');
+            document.documentElement.style.setProperty('--tg-theme-hint-color', themeParams.hint_color || '#aaa');
+            document.documentElement.style.setProperty('--tg-theme-bg-color', themeParams.background_color || '#2c2c2e');
+            document.documentElement.style.setProperty('--tg-theme-secondary-bg-color', themeParams.secondary_bg_color || '#1c1c1d');
+            document.documentElement.style.setProperty('--tg-theme-button-color', themeParams.button_color || '#007aff');
+            document.documentElement.style.setProperty('--tg-theme-button-text-color', themeParams.button_text_color || '#ffffff');
+            document.body.style.backgroundColor = themeParams.secondary_bg_color || '#1c1c1d';
+
+            // Main App Content
+            const app = document.getElementById('app');
+            app.innerHTML = `
+                <header style="text-align: center; margin-bottom: 30px; padding: 10px 0; border-bottom: 1px solid var(--tg-theme-hint-color);">
+                    <h2 style="margin: 0;">টাস্ক উপার্জন মিনি অ্যাপ</h2>
+                    <p style="color: var(--tg-theme-hint-color); margin: 5px 0 0 0;">স্বাগতম, ${user.first_name}!</p>
+                </header>
+
+                <div class="card">
+                    <p style="font-size: 16px; margin: 0 0 5px 0; color: var(--tg-theme-hint-color);">মোট ব্যালেন্স</p>
+                    <h1 id="balance-display" style="font-size: 36px; margin: 0; font-weight: bold;">💰 ${balance}</h1>
+                    <button class="withdraw-btn" id="withdraw-btn">
+                        টাকা উত্তোলন (Withdraw)
+                    </button>
+                </div>
+
+                <section>
+                    <h3 style="border-left: 3px solid var(--tg-theme-button-color); padding-left: 10px;">দৈনিক টাস্ক</h3>
+                    <div id="tasks-list">
+                        ${tasksData.map(task => `
+                            <div class="task-item ${task.completed ? 'completed' : ''}" data-task-id="${task.id}" data-task-reward="${task.reward}">
+                                <div>
+                                    <p style="margin: 0; font-weight: bold;">${task.title}</p>
+                                    <span style="color: var(--tg-theme-hint-color);">+${task.reward} কয়েন</span>
+                                </div>
+                                <button class="task-btn" ${task.completed ? 'disabled' : ''}>
+                                    ${task.completed ? 'সম্পন্ন' : 'শুরু করুন'}
+                                </button>
+                            </div>
+                        `).join('')}
+                    </div>
+                </section>
+                
+                <section style="margin-top: 30px;">
+                    <h3 style="border-left: 3px solid var(--tg-theme-button-color); padding-left: 10px;">বন্ধুদের আমন্ত্রণ জানান</h3>
+                    <div class="card">
+                        <p style="margin: 0 0 10px 0;">আপনার রেফারেল লিঙ্ক শেয়ার করুন:</p>
+                        <code class="referral-code">
+                            https://t.me/YourBotUsername?start=ref_${user.id}
+                        </code>
+                        <button class="withdraw-btn" id="copy-btn" style="padding: 8px 15px;">
+                            🔗 লিঙ্ক কপি করুন
+                        </button>
+                    </div>
+                </section>
+            `;
+
+            // ইভেন্ট লিসেনার যুক্ত করুন
+            document.querySelectorAll('.task-btn').forEach(button => {
+                button.addEventListener('click', function() {
+                    if (this.disabled) return;
+                    const item = this.closest('.task-item');
+                    const taskId = parseInt(item.getAttribute('data-task-id'));
+                    const reward = parseInt(item.getAttribute('data-task-reward'));
+
+                    // ব্যালেন্স আপডেট
+                    balance += reward;
+                    document.getElementById('balance-display').textContent = '💰 ' + balance;
+                    
+                    // UI আপডেট
+                    const task = tasksData.find(t => t.id === taskId);
+                    if (task) task.completed = true;
+                    item.classList.add('completed');
+                    this.textContent = 'সম্পন্ন';
+                    this.disabled = true;
+
+                    webApp.showAlert(`অভিনন্দন! আপনি ${reward} কয়েন পেয়েছেন।`);
+                });
+            });
+
+            document.getElementById('withdraw-btn').addEventListener('click', () => {
+                webApp.showAlert('টাকা উত্তোলনের অনুরোধ প্রক্রিয়াধীন...');
+            });
+
+            document.getElementById('copy-btn').addEventListener('click', () => {
+                const referralLink = `https://t.me/YourBotUsername?start=ref_${user.id}`;
+                webApp.copyText(referralLink);
+                webApp.showAlert('রেফারেল লিঙ্ক কপি করা হয়েছে!');
+            });
+        }
+
+        if (window.Telegram && window.Telegram.WebApp) {
+            window.Telegram.WebApp.ready();
+            window.Telegram.WebApp.expand();
+            renderApp();
+        } else {
+            // যদি টেলিগ্রামের বাইরে লোড হয় তবে একটি ডিফল্ট রেন্ডার
+            document.getElementById('app').innerHTML = `<div style="text-align: center; color: white;">এটি একটি টেলিগ্রাম মিনি অ্যাপ। দয়া করে টেলিগ্রামের ভেতরে খুলুন।</div>`;
+        }
+    </script>
+</body>
 </html>
