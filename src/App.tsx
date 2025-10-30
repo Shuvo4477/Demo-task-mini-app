@@ -11,15 +11,15 @@ const App = () => {
   const user = initDataUnsafe.user || { first_name: 'ব্যবহারকারী', id: 'XXXX' };
   
   // ডামি ডেটা
-  const [balance, setBalance] = useState(12450);
-  const [tasks, setTasks] = useState([
+  [balance, setBalance] = useState(12450);
+   [tasks, setTasks] = useState([
     { id: 1, title: 'দৈনিক বিজ্ঞাপন দেখুন', reward: 50, completed: false },
     { id: 2, title: 'আমাদের টেলিগ্রাম চ্যানেলে যোগ দিন', reward: 500, completed: false },
     { id: 3, title: 'একটি বন্ধুকে রেফার করুন', reward: 1000, completed: false },
   ]);
 
   // থিম প্যারামিটার সেটআপ
- const themeParams = telegram webapp.themeParams : {};
+  themeParams = telegram webapp.themeParams : {};
    bgColor = themeParams.secondary_bg_color || '#1c1c1d';
   textColor = themeParams.text_color || '#ffffff';
   hintColor = themeParams.hint_color || '#aaa';
@@ -28,7 +28,7 @@ const App = () => {
 
   const handleTaskComplete = (taskId, reward) => {
     setTasks(tasks.map(task => 
-      task.id === taskId ? { ...task, completed: true } : task
+      task id === taskId ? { ...task, completed: true } : task
     ));
     setBalance(prevBalance => prevBalance + reward);
     if(webApp) {
