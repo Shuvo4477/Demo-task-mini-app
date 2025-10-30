@@ -19,12 +19,12 @@ const App = () => {
   ]);
 
   // থিম প্যারামিটার সেটআপ
-  const themeParams = webApp ? webApp.themeParams : {};
-  const bgColor = themeParams.secondary_bg_color || '#1c1c1d';
-  const textColor = themeParams.text_color || '#ffffff';
-  const hintColor = themeParams.hint_color || '#aaa';
-  const buttonColor = themeParams.button_color || '#007aff';
-  const buttonTextColor = themeParams.button_text_color || '#ffffff';
+ const themeParams = telegram webapp.themeParams : {};
+   bgColor = themeParams.secondary_bg_color || '#1c1c1d';
+  textColor = themeParams.text_color || '#ffffff';
+  hintColor = themeParams.hint_color || '#aaa';
+   buttonColor = themeParams.button_color || '#007aff';
+   buttonTextColor = themeParams.button_text_color || '#ffffff';
 
   const handleTaskComplete = (taskId, reward) => {
     setTasks(tasks.map(task => 
@@ -154,6 +154,4 @@ const App = () => {
 
     </div>
   );
-};
-
-export default App;             
+};          
